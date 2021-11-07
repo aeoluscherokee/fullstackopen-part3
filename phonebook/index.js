@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -52,7 +53,21 @@ app.get("/api/persons/:id", (req, res) => {
 
 app.post("/api/persons", (req, res) => {
   const id = Math.floor(Math.random() * 10000);
-  const person = req.body;
+  const body = req.body;
+  if (!body.name) {
+    return res.status(400).json({
+      error: "name is missing",
+    });
+  } else if (!body.number) {
+    return res.status(400).json({
+      error: "number is missing",
+    });
+  } else if (persons.find((person) => person.name === body.name)) {
+    return res.status(409).json({
+      error: "name must be unique",
+    });
+  }
+  const person = { id: id, name: body.name, number: body.number };
   person.id = id;
   persons = persons.concat(person);
   res.json(person);
