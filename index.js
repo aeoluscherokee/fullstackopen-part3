@@ -69,6 +69,11 @@ app.delete("/api/persons/:id", (req, res) => {
   });
 });
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+app.use(unknownEndpoint);
+
 const PORT = 3001;
 app.listen(process.env.PORT || PORT, () => {
   console.log(`Server running on port ${process.env.PORT || PORT}`);
