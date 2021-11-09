@@ -30,18 +30,20 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   const id = req.params.id;
-  Person.findById(id).then((person) => {
-    if (person) {
-      res.json(person);
-    } else {
-      res.status(404).end();
-    }
-  });
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
   if (!body.name) {
     return res.status(400).json({
@@ -53,26 +55,40 @@ app.post("/api/persons", (req, res) => {
     });
   }
   const person = new Person({ name: body.name, number: body.number });
-  person.id = id;
   person
     .save()
     .then((savedPerson) => res.json(savedPerson))
-    .catch((error) => res.status(400).json(error));
+    .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   const id = req.params.id;
-  Person.findByIdAndRemove(id).then((deletedPerson) => {
-    if (deletedPerson) {
-      res.status(204).end();
-    } else res.status(404).end();
-  });
+  Person.findByIdAndRemove(id)
+    .then((deletedPerson) => {
+      if (deletedPerson) {
+        res.status(204).end();
+      } else res.status(404).end();
+    })
+    .catch((error) => next(error));
 });
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 app.use(unknownEndpoint);
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "MongoServerError") {
+    return res.status(500).send({ error: "name must be unique" });
+  }
+
+  next(error);
+};
+app.use(errorHandler);
 
 const PORT = 3001;
 app.listen(process.env.PORT || PORT, () => {
