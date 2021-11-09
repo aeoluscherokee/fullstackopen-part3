@@ -10,6 +10,7 @@
     "deploy": "git push heroku master",
     "deploy:full": "npm run build:ui && git add . && git commit -m 'Build static files' && npm run deploy",
     "logs:prod": "heroku logs --tail",
+    "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
